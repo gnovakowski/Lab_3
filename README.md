@@ -12,58 +12,77 @@ The implementation of this lab consisted of having to write code for five separa
 
 ![alt text](http://i.imgur.com/Fq27U9o.png "RTL Schematic")
 
-In addition, the block diagram (provided on the Lab 3 page) for `character_gen` can be seen below:
-
-![alt text](http://i.imgur.com/HRA0zA8.png "Character Gen")
-
 
 The modules that I wrote for this lab are listed below complete with examples and explanations:
 
  * `atlys_lab_font_controller` - This file is the top level VHDL file that includes the instantiations of both the `vga_sync` and `pixel_gen` modules. The instantiations for each of these components can be seen below:
 
 ```vhdl
-	vga_sync_connect : entity work.vga_sync(behavioral)
-		PORT MAP ( clk => pixel_clk,
-           reset =>  reset, 
-           h_sync =>  h_sync_inter,
-           v_sync =>  v_sync_inter,
-           v_completed =>  v_completed_inter,
-           blank => blank_inter,
-           row =>  row_inter,
-           column => column_inter 		
+	Inst_vga_sync: entity work.vga_sync(Behavioral) PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		h_sync => h_sync,
+		v_sync => v_sync,
+		v_completed => v_completed,
+		blank => blank,
+		row => row,
+		column => column
 	);
 
- 
-	pixel_gen_connect : entity work.pixel_gen(behavioral)
-		PORT MAP(
-			row => row_inter,
-			column => column_inter,
-			blank => blank_inter,
-			ball_x => ballx_inter,
-			ball_y => bally_inter,
-			paddle_y => paddley_intermed,
-			r => red_inter,
-			g => green_inter,
-			b => blue_inter
+	Inst_character_gen: entity work.character_gen(Behavioral) PORT MAP(
+		clk => pixel_clk,
+		blank => blank_reg ,
+		row => std_logic_vector(row),
+		column => std_logic_vector(column),
+		ascii_to_write => "00000011", -- this is the A ascii
+		write_en => WE,
+		r => red,
+		g => green,
+		b => blue 
 	);
 
+	Inst_input_to_pulse: entity work.input_to_pulse(Behavioral) PORT MAP(
+		clk => pixel_clk,
+		reset => reset,
+		button => start,
+		button_pulse => WE
+	);
+```
+ * In addition, in order for the characters to properly display on the monitor, I needed to implement multiple delays in the top shell. These delays can be seen below:
 
-	pong_control_connect : entity work.pong_control(behavioral)
-		PORT MAP(
-			clk =>  pixel_clk,
-			reset =>  reset,
-			up => up,
-			down => down,
-			speed => speed,
-			v_completed =>  v_completed_inter,
-			ball_x =>   ballx_inter,
-			ball_y =>   bally_inter,
-			paddle_y =>  paddley_intermed
-	);	
+```vhdl
+		process(pixel_clk) is 
+		begin
+			if(rising_edge(pixel_clk)) then
+				delay1 <= blank;
+			end if;
+		end process;
+
+		process(pixel_clk) is
+		begin
+			if(rising_edge(pixel_clk)) then
+				blank_reg <= delay1;
+			end if;
+		end process;
+
+		process(pixel_clk) is 
+		begin
+			if(rising_edge(pixel_clk)) then
+				h_sync_delay1 <= h_sync;
+				h_sync_delay2 <= h_sync_delay1;
+			end if;
+		end process;
+
+		process(pixel_clk) is 
+		begin
+			if(rising_edge(pixel_clk)) then
+				v_sync_delay1 <= v_sync;
+				v_sync_delay2 <= v_sync_delay1;
+			end if;
+		end process;
 ```
 
-
- * `pixel_gen` - This VHDL module is the pixel generator, which is the file that actually writes pixels to the monitor display, using signals and generics initialized in the earlier VHDL modules. The process for drawing the logo, paddle, and ball on the display (with user input from buttons on the FPGA) can be seen below:
+ * `character_gen` - This VHDL module is the pixel generator, which is the file that actually writes pixels to the monitor display, using signals and generics initialized in the earlier VHDL modules. The process for drawing the logo, paddle, and ball on the display (with user input from buttons on the FPGA) can be seen below:
 
 ```vhdl
 		blue_logo <=
@@ -91,6 +110,7 @@ The modules that I wrote for this lab are listed below complete with examples an
 		b <= blue_logo;
 
 ```
+
 
  * `pong_control` - This VHDL module includes all of the functinality required to move the paddle up and down and to move the ball accordingly. The process depicting this functionality can be seen in the code below:
 
