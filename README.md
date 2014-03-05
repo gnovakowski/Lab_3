@@ -186,6 +186,6 @@ While working on this lab, I experienced issues with many of my VHDL modules. Th
 
 ### Conclusion
 
-Throughout the course of this lab, the major thing that I noticed was that although it was not as difficult as Lab 2, it was slightly more confusing in the beginning stages. The confusion stemmed from having a semi complete list of required modules, with no real direction on the order in which to instantiate them. This problem was overcome by thinking through the process carefully and appropriately deciding the placement of each of the modules.
+Throughout the course of this lab, the major thing that I noticed was that although it was not as difficult as Lab 2, it was slightly more confusing in the beginning stages. The confusion stemmed from having a semi complete list of required modules, with no real direction on the order in which to instantiate them. This problem was overcome by thinking through the process carefully and appropriately deciding the placement of each of the modules. There is nothing that I would change in this lab, other than maybe assigning less points to A functionality, as it seems extremely difficult, yet carries 10% of the project grade.
 
  
