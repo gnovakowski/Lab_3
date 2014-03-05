@@ -178,12 +178,10 @@ The modules that I wrote for this lab are listed below complete with examples an
 
 ### Test/Debug
 
-Throughout the course of this lab, I experienced issues with each of my VHDL modules. However, through the careful application of testbenches (and some consulatation with experts such as Captain Branchflower), I was able to properly diagnose and fix the different errors. The problems I experienced can be seen below.
- * In `h_sync_gen`, my first issue came with differences in type. I had initialized various signals to be used with my code, but I had written them with incorrect types. This gave me numerous problems while writing the code for this file, especially when trying to assign a value to my `column` that was dependent on count. I then realized that the value I needed to generate an unsigned value for `column`. After fixing this mistake, my code for `h_sync_gen` worked appropriately. 
- * In `vga_sync`, I was also experiencing issues, which once again seemed to be a result of a conflict in types. After failing to see what was wrong, a careful analysis of the error messages showed that one of my declared signals was not being appropriately used. The signal was being declared but not being used in the highest level file of `v_sync_gen`. After commenting out this input declaration, my code for `vga_sync` worked appropriately.
- * My final issue was one that should not have particularly beeen an issue. After not being able to get my completed code working on my FPGA, I realized that I had not created a constraints file that specified which parts of my FPGA to use. After the creation of this file, my code properly displayed the desired pattern on the monitor display.
-
-
+While working on this lab, I experienced issue with many of my VHDL modules. The problems I experienced can be seen below.
+ * The first of my issues was with the hierarchichal design of the lab. I had initial issues determining which module were to be instantiated where, specifially with the `font_rom` and `char_screen_buffer` modules. Initially i had placed both of them in the top shell - `atlys_lab_font_controller` and I was experiencing many issues with my code. Ultimately though, I figured out to instantiate them both in the `character_gen` module, which solved this particular issue.
+ * Another issue I experienced was with trying to generate the characters to be drawn to the screen in a separate `pixel_gen` module. In theory, this should have worked, but I was experiencing difficulties interfacing the `pixel_gen` module with the font ROM library, since I was no longer just drawing things on the screen. I eventually just scrapped my `pixel_gen` module altogether and created the apropriate code in the `character_gen` module using already existing inputs.
+ * The final issue I experienced in this lab occured after I got the characters to display on the screen. The issue was that the very first and very last columns of pixels were being cut off. I had already implemented appropriate delays for blank in the top shell, but I couldn't figure out why this was happenening. After consulting with Captain Branchflower, he noted that my issue was most likely with the delay for `h_sync` and `v_sync`. After writing delays for these signals, the pixels were no longer being cut off, and I achieved basic functionality.
 
 
 ### Conclusion
