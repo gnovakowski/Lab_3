@@ -15,7 +15,7 @@ The implementation of this lab consisted of having to write code for five separa
 
 The modules that I wrote for this lab are listed below complete with examples and explanations:
 
- * `atlys_lab_font_controller` - This file is the top level VHDL file that includes the instantiations of both the `vga_sync` and `pixel_gen` modules. The instantiations for each of these components can be seen below:
+ * `atlys_lab_font_controller` - This file is the top level VHDL file that includes the instantiations of the `vga_sync`, `character_gen`, and `input_to_pulse` modules. The instantiations for each of these components can be seen below:
 
 ```vhdl
 	Inst_vga_sync: entity work.vga_sync(Behavioral) PORT MAP(
@@ -82,49 +82,98 @@ The modules that I wrote for this lab are listed below complete with examples an
 		end process;
 ```
 
- * `character_gen` - This VHDL module is the pixel generator, which is the file that actually writes pixels to the monitor display, using signals and generics initialized in the earlier VHDL modules. 
+ * `character_gen` - This VHDL module actually generates the display of characters on the actual monitor. This also contained three instantiations for entities utilized to generate the signal. The instantiations can be seen below:
 
 ```vhdl
+		Inst_char_screen_buffer: entity work.char_screen_buffer(Behavioral) PORT MAP(
+			clk => clk,
+			we => write_en,
+			address_a => count_reg ,
+			address_b => row_col_multiply(11 downto 0),
+			data_in => ascii_to_write,
+			data_out_a => open,
+			data_out_b => data_b_sig
+		);
 
+		Inst_font_rom: entity work.font_rom(arch) PORT MAP(
+			clk => clk ,
+			addr => addr_sig,
+			data =>  font_data_sig
+		);
+
+		Inst_mux: entity work.mux(Behavioral) PORT MAP(
+			data => font_data_sig,
+			sel => col_reg,
+			output => mux_out
+		);
 ```
  * In addition, the below picture depicts the block diagram for `character_gen`.
 
 ![alt text](http://i.imgur.com/HRA0zA8.png "Character Gen")
 
- * `pong_control` - This VHDL module includes all of the functinality required to move the paddle up and down and to move the ball accordingly. The process depicting this functionality can be seen in the code below:
+ * Also, my `character_gen` module contained a process that actually displayed the characters/colors on the monitor, which took the place of a separate `pixel_gen` module. This process can be seen below:
 
 ```vhdl
-	process(reset, clk, paddle_y_reg, ball_x_reg, ball_y_reg, v_completed, running, delay_reg) is
+		process(mux_out, blank) is
+		begin
+			r <= (others => '0');
+			g <= (others => '0');
+			b <= (others => '0');
+			if(blank = '0') then
+				if(mux_out = '1') then
+					r <= (others => '1');
+				end if;
+			end if;	
+		end process;
+```
+
+ * `mux` - This VHDL module is the multiplexer that is utilized with my `character_gen` module to generate the characters on the monitor dsiplay. I decided to create this mux in a separate module and then instantiate it in the `character_gen` module. The mux code can be seen below:
+
+```vhdl
+	process(sel, data) is
 	begin
-		if(reset = '1') then
-			ball_x_dir <= '1';
-			ball_y_dir <= '1';
-			running <= '1';
-		elsif(rising_edge(clk) and running = '1') then
-			if(hit_paddle = '1') then
-				ball_x_dir <= '1';
-			else 
-				if(ball_x_reg > 635) then
-					ball_x_dir <= '0';
-				elsif(ball_x_reg <= 7) then
-					running <= '0';
-				else
-					ball_x_dir <= ball_x_dir;
-				end if;
-				if(ball_y_reg < 5) then
-					ball_y_dir <= '1';
-				elsif(ball_y_reg > 475) then
-					ball_y_dir <= '0';
-				else
-					ball_y_dir <= ball_y_dir;
-				end if;
-			end if;
+		if( sel = "000") then
+			output <= data(7);
+		elsif(sel = "001") then
+			output <= data(6);
+		elsif(sel = "010") then
+			output <= data(5);
+		elsif(sel <="011") then
+			output <= data(4);
+		elsif(sel <="100") then
+			output <= data(3);
+		elsif(sel <="101") then
+			output <= data(2);
+		elsif(sel <= "110") then
+			output <= data(1);
 		else
-			ball_y_dir <= ball_y_dir;
-			ball_x_dir <= ball_x_dir;
-			running <= running;
+			output <= data(0);
 		end if;
-	end process;	
+	end process;
+```
+ * `mux` - This VHDL module is the multiplexer that is utilized with my `character_gen` module to generate the characters on the monitor dsiplay. I decided to create this mux in a separate module and then instantiate it in the `character_gen` module. The mux code can be seen below:
+
+```vhdl
+	process(sel, data) is
+	begin
+		if( sel = "000") then
+			output <= data(7);
+		elsif(sel = "001") then
+			output <= data(6);
+		elsif(sel = "010") then
+			output <= data(5);
+		elsif(sel <="011") then
+			output <= data(4);
+		elsif(sel <="100") then
+			output <= data(3);
+		elsif(sel <="101") then
+			output <= data(2);
+		elsif(sel <= "110") then
+			output <= data(1);
+		else
+			output <= data(0);
+		end if;
+	end process;
 ```
 
 ### Test/Debug
